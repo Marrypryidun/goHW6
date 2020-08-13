@@ -22,13 +22,21 @@ func ToPeople(w worker)people{
 
 	return w.person
 }
-func (p *MyStruct) createAndPrint(i int,w *worker/*,waitgroup *sync.WaitGroup*/) {
+func (p *MyStruct) createAndPrintBosses(i int,w *worker,waitgroup *sync.WaitGroup) {
 	p.mux.Lock()
 	w.person.age++
 	p.v[i]=*w
 	println(i,"-",p.v[i].person.name,p.v[i].person.age)
 	p.mux.Unlock()
-	//waitgroup.Done()
+	waitgroup.Done()
+}
+func (p *MyStruct) createAndPrint(i int,w *worker) {
+	p.mux.Lock()
+	w.person.age++
+	p.v[i]=*w
+	println(i,"-",p.v[i].person.name,p.v[i].person.age)
+	p.mux.Unlock()
+
 }
 func main()  {
 	//конфертація типів
@@ -39,6 +47,13 @@ func main()  {
 			age: 18},
 			position: "student",
 	}
+	var w2 =worker{
+		person:
+		people{
+			name: "Jim",
+			age: 22},
+		position: "developer",
+	}
 	b:=ToPeople(w);
 	/*b := *(*people)(unsafe.Pointer(&w))//можливий і такий варіант*/
 	fmt.Println(b)
@@ -46,14 +61,14 @@ func main()  {
 	// перебір начальників і робітників
 	bosses:=MyStruct{v:make(map[int]worker)}
 	workers:=MyStruct{v:make(map[int]worker)}
-	/*var waitgroup sync.WaitGroup
-	waitgroup.Add(10)*/
+	var waitgroup sync.WaitGroup
+	waitgroup.Add(9)
 	for i:=1; i<10; i++{
-		/*go*/ bosses.createAndPrint(i,&w/*,&waitgroup*/)
+		go bosses.createAndPrintBosses(i,&w2,&waitgroup)
 	}
-	w.person.name="Bogdan";
+	waitgroup.Wait()
 	for i:=1; i<10; i++{
-		/*go*/ workers.createAndPrint(i,&w/*,&waitgroup*/)
+		workers.createAndPrint(i,&w)
 	}
-	//waitgroup.Wait()
+
 }
